@@ -1,7 +1,6 @@
 #include "bmp390.h"
 #include "stm32f446xx.h"
 
-
 float BMP390_compensate_temperature(uint32_t uncomp_temp, struct BMP390_calib_data *calib_data)
 {
 
@@ -43,4 +42,29 @@ float BMP390_compensate_pressure(uint32_t uncomp_press, struct BMP390_calib_data
     comp_press = partial_out1 + partial_out2 + partial_data4;
 
     return comp_press;
+}
+
+uint8_t transferSPI(uint8_t addr)    //HOLDS THE MPU9250 REGISTER ADDRESS TO REQUEST DATA FROM
+{
+    uint8_t rx_data = 0;
+
+    //SET SLAVE SELECT LOW
+    GPIOB->ODR &= ~(1u << 1);
+
+    //WRITE DATA AND DUMMY BYTE TO DATA REGISTER
+    SPI1->DR = (uint16_t)(addr << 8);
+
+    // Wait until transmit is complete
+    while (!(SPI1->SR & SPI_SR_TXE));
+
+    // Wait until receive buffer is full
+    while (!(SPI1->SR & SPI_SR_RXNE));
+
+    // Read received data
+    data = SPI1->DR;
+
+    //SET SLAVE SELECT HIGH
+    GPIOB->ODR |= (1u << 1);
+
+    return rx_data;
 }
