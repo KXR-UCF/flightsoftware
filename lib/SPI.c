@@ -36,7 +36,11 @@ void setPinMode(void)
                     |(2u << (2 * 12))       //SET PA12 TO AF
                     );
 
-    GPIOB->MODER |= (1u << (2 * 0));        //SET PB0 TO OUTPUT MODE
+    GPIOB->MODER |= (1u << (2 * 8))          //SET PB8 TO OUTPUT MODE
+                    |(1u << (2 * 15))        //SET PB15 TO OUTPUT MODE
+                    |(1u << (2 * 13))        //SET PB13 TO OUTPUT MODE
+                    |(1u << (2 * 1)          //SET PB1 TO OUTPUT MODE
+                    );
 }
 
 void setAF(void)
