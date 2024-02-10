@@ -59,7 +59,7 @@
 #define REV_ID 0x01
 #define CHIP_ID 0x00
 
-struct BMP390_calib_data
+typedef struct
 {
     int8_t par_p11;
     int8_t par_p10;
@@ -76,7 +76,12 @@ struct BMP390_calib_data
     uint16_t par_t2;
     uint16_t par_t1;
     float t_lin;
-};
+} BMP390_calib_data;
+
+typedef struct
+{
+
+} BMP390;
 
 void initClocks(void);
 

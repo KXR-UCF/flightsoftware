@@ -1,5 +1,5 @@
-#include "bmp390.h"
 #include "stm32f446xx.h"
+#include "bmp390.h"
 
 float BMP390_compensate_temperature(uint32_t uncomp_temp, struct BMP390_calib_data *calib_data)
 {
@@ -67,4 +67,14 @@ uint8_t transferSPI(uint8_t addr)    //HOLDS THE MPU9250 REGISTER ADDRESS TO REQ
     GPIOB->ODR |= (1u << 1);
 
     return rx_data;
+}
+
+BMP390_PresRead(uint8_t addr, uint8_t *data){
+    int32_t pres = 0;
+
+    pres |= transferSPI(TEMP_MSB) << 16;
+    pres |= transferSPI(TEMP_LSB) << 8;
+    pres |= transferSPI(TEMP_XLSB);
+
+    pres
 }

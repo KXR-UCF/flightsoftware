@@ -1,5 +1,5 @@
 #include "stm32f446xx.h"
-
+#include "icm20948.h"
 
 uint8_t transferSPI(uint8_t tx_data)    //HOLDS THE MPU9250 REGISTER ADDRESS TO REQUEST DATA FROM
 {
