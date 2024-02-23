@@ -1,0 +1,1 @@
+- Dont do anything live if not needed to make decisiosn
