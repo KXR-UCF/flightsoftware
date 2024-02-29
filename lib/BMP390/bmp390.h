@@ -1,6 +1,9 @@
 #ifndef BMP390_H
 #define BMP390_H
+
 #include "stm32f446xx.h"
+#include "bmp3_defs.h"
+#include <stdint.h>
 
 #define CMD 0x7E
 
@@ -43,7 +46,7 @@
 #define INT_STATUS 0x11
 #define EVENT 0x10
 
-// DATA
+// Data
 #define SENSOR_TIME_MSB 0x0E
 #define SENSOR_TIME_LSB 0x0D
 #define SENSOR_TIME_XLSB 0x0C
@@ -76,29 +79,152 @@ typedef struct
     uint16_t par_t2;
     uint16_t par_t1;
     float t_lin;
+
 } BMP390_calib_data;
+
+// Compensated
+typedef struct
+{
+    uint64_t pressure;
+
+    int64_t temperature;
+
+} BMP390_uncomp_data;
+
+// Uncompensated
+typedef struct
+{
+    double temperature;
+
+    double pressure;
+
+} BMP390_data;
+
+// Device settings
+typedef struct
+{
+    // Output mode
+    uint8_t op_mode;
+
+    // Active high/low
+    uint8_t level;
+
+    // Latched or Non-latched
+    uint8_t latch;
+
+    // Data ready interrupt
+    uint8_t drdy_en;
+
+} BMP390_int_ctrl_settings;
+
+typedef struct 
+{
+    // Pressure oversampling
+    uint8_t pressure_os;
+
+    // Temperature oversampling
+    uint8_t temp_os;
+
+    // IIR filter
+    uint8_t iir_filter;
+
+    // Output data rate
+    uint8_t odr;
+
+} BMP390_odr_filter_settings;
 
 typedef struct
 {
+    // Power mode
+    uint8_t op_mode;
+
+    // Enable/disable pressure sensor
+    uint8_t press_en;
+
+    // Enable/disable temperature sensore
+    uint8_t temp_en;
+
+    // ODR and filter
+    struct BMP390_odr_filter_settings odr_filter;
+
+    // Interrupt
+    struct BMP390_int_ctrl_settings int_settings;
+
+} BMP390_settings;
+
+typedef struct 
+{
+    // Command ready status
+    uint8_t cmd_rdy;
+
+    // Data ready for pressure
+    uint8_t drdy_press;
+
+    // Data ready for temperature
+    uint8_t drdy_temp;
+
+} BMP_sens_status;
+
+typedef struct 
+{
+    // Fatal error
+    uint8_t fatal;
+
+    // Command error
+    uint8_t cmd;
+
+    // Config error
+    uint8_t config;
+
+} BMP_err_status;
+
+typedef struct 
+{
+    // Sensor
+    struct BMP390_sens_status;
+
+    // Error
+    struct BMP390_err_status err;
+
+    // Power on reset
+    uint8_t power_on_reset;
+
+} BMP_status;
+
+typedef struct
+{
+    uint8_t chip_id;
+
+    void *intf_ptr;
+
+    enum intf = BMP390_SPI_INTF;
+
+    BMP390_read_fptr_t read;
+    BMP390_write_fptr_t write;
+
+    BMP390_delay_us_fptr_t delay_us;
+
+    struct BMP390_calib_data calib_data;
 
 } BMP390;
 
-void initClocks(void);
+int8_t bmp390_init(struct BMP390 *dev); // initialize sensor
+int8_t bmp390_set_sensor(uint32_t desired, struct BMP390_settings *settings, struct BMP390 *dev); // enable/diable pressure/temperature
 
-void initSPI(void);
-void configSpi1Pins(void);
-void setPinMode(void);
-void setAF(void);
-void configSpi(void);
-uint8_t transferSPI(uint8_t tx_data);
+#define SPI_HANDLE	(hspi1)
 
+#define BUS_TIMEOUT             1000
 
-uint8_t bmp390_init(bmp390_interface_t interface, bmp390_address_t addr_pin);
-uint8_t bmp390_deinit(void);
-uint8_t bmp390_read(float *temperature_c, float *pressure_pa);
+void bmp3_delay_us(uint32_t period, void *intf_ptr);
 
-float BMP390_compensate_temperature(uint32_t uncomp_temp, struct BMP390_calib_data calib_data);
-float BMP390_compensate_pressure(uint32_t uncomp_press, struct BMP390_calib_data calib_data);
+void BMP390_SPI_Init(void);
 
+#ifndef USE_BOSCH_SENSOR_API
+#define USE_BOSCH_SENSOR_API
+
+int8_t BMP390_SPI_Read(uint8_t subaddress, uint8_t *pBuffer, uint16_t ReadNumbr, void *intf_ptr);
+int8_t BMP390_SPI_Write(uint8_t subaddress, uint8_t *pBuffer, uint16_t WriteNumbr, void *intf_ptr);
+
+#endif
 
 #endif // !BMP390_H
