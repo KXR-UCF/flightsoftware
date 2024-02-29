@@ -1,0 +1,18 @@
+{
+	"folders": [
+		{
+			"name": "flightsoftware",
+			"path": "."
+		},
+		{
+			"name": "f",
+			"path": "../../Documents/PlatformIO/Projects/f"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"stm32f446xx.h": "c",
+			"stm32f4xx.h": "c"
+		}
+	}
+}
