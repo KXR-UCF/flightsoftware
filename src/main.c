@@ -33,6 +33,13 @@
 #define LD2_Pin GPIO_PIN_7
 #define LD2_GPIO_Port GPIOB
 
+#define B1_Pin GPIO_PIN_13
+#define B1_GPIO_Port GPIOC
+#define B1_EXTI_IRQn EXTI15_10_IRQn
+#define NCS_SENSOR_Pin GPIO_PIN_10
+#define NCS_SENSOR_GPIO_Port GPIOA
+
+
 CAN_HandleTypeDef hcan1;
 SPI_HandleTypeDef hspi1;
 TIM_HandleTypeDef htim1;
@@ -73,6 +80,34 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
     }
 }
 
+
+// SPI PLACE HOLDERS ----------------------------------------------------
+uint8_t SENSOR_Read8(uint8_t addr, uint8_t *data)
+{
+    uint8_t txBuf[2] = {(addr | 0x80), 0x00};
+    uint8_t rxBuf[2];
+
+    HAL_GPIO_WritePin(NCS_SENSOR_GPIO_Port, NCS_SENSOR_GPIO_Port, GPIO_PIN_RESET);
+    uint8_t status = (HAL_SPI_TransmitReceive(&hspi1, txBuf, rxBuf, 2, HAL_MAX_DELAY) == HAL_OK);
+    HAL_GPIO_WritePin(NCS_SENSOR_GPIO_Port, NCS_SENSOR_GPIO_Port, GPIO_PIN_SET);
+
+    *data = rxBuf[1];
+    return status;
+}
+
+uint8_t SENSOR_Write8(uint8_t addr, uint8_t *data)
+{
+    uint8_t txBuf[2] = {(addr), 0x00};
+    uint8_t rxBuf[2];
+
+    HAL_GPIO_WritePin(NCS_SENSOR_GPIO_Port, NCS_SENSOR_GPIO_Port, GPIO_PIN_RESET);
+    uint8_t status = (HAL_SPI_Transmit(&hspi1, txBuf, 2, HAL_MAX_DELAY) == HAL_OK);
+    HAL_GPIO_WritePin(NCS_SENSOR_GPIO_Port, NCS_SENSOR_GPIO_Port, GPIO_PIN_SET);
+
+    *data = rxBuf[1];
+    return status;
+}
+
 int main(void)
 {
     HAL_Init();
@@ -83,6 +118,10 @@ int main(void)
     MX_SPI1_Init();
     MX_CAN1_Init();
     MX_TIM1_Init();
+
+    HAL_TIM_PWM_Start(&htim1, TIM_CHANNEL_1);
+
+    uint8_t intensity = 0;
 
     HAL_CAN_Start(&hcan1, ActiveITs);
 
@@ -95,6 +134,16 @@ int main(void)
 
     while (1)
     {
+        htim1.Instance->CCR1 = 100 - intensity;
+
+        intensity += 5;
+
+        if (intensity > 100)
+        {
+            intensity = 0;
+        }
+
+        HAL_Delay(100);
     }
 }
 
@@ -208,7 +257,7 @@ static void MX_GPIO_Init(void)
     __HAL_RCC_GPIOB_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOA, LD2_Pin | ncs_sensor_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, LD2_Pin | NCS_SENSOR_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin : B1_Pin */
     GPIO_InitStruct.Pin = B1_Pin;
@@ -216,8 +265,8 @@ static void MX_GPIO_Init(void)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : LD2_Pin ncs_sensor_Pin */
-    GPIO_InitStruct.Pin = LD2_Pin | ncs_sensor_Pin;
+    /*Configure GPIO pins : LD2_Pin NCS_SENSOR_Pin */
+    GPIO_InitStruct.Pin = LD2_Pin | NCS_SENSOR_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -307,7 +356,7 @@ static void MX_GPIO_Init(void)
     __HAL_RCC_GPIOB_CLK_ENABLE();
 
     /*Configure GPIO pin Output Level */
-    HAL_GPIO_WritePin(GPIOA, LD2_Pin | ncs_sensor_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(GPIOA, LD2_Pin | NCS_SENSOR_Pin, GPIO_PIN_RESET);
 
     /*Configure GPIO pin : B1_Pin */
     GPIO_InitStruct.Pin = B1_Pin;
@@ -315,8 +364,8 @@ static void MX_GPIO_Init(void)
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-    /*Configure GPIO pins : LD2_Pin ncs_sensor_Pin */
-    GPIO_InitStruct.Pin = LD2_Pin | ncs_sensor_Pin;
+    /*Configure GPIO pins : LD2_Pin NCS_SENSOR_Pin */
+    GPIO_InitStruct.Pin = LD2_Pin | NCS_SENSOR_Pin;
     GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull = GPIO_NOPULL;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
