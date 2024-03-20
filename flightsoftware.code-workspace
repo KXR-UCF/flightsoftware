@@ -3,10 +3,6 @@
 		{
 			"name": "flightsoftware",
 			"path": "."
-		},
-		{
-			"name": "f",
-			"path": "../../Documents/PlatformIO/Projects/f"
 		}
 	],
 	"settings": {

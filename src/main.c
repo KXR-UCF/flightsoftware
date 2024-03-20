@@ -44,7 +44,7 @@ uint8_t TxData[8];
 uint8_t RxData[8];
 
 uint32_t TxMailbox;
-
+  
 int datacheck = 0;
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
@@ -70,8 +70,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
 // Spi place holders
 uint8_t SENSOR_Read8(GPIO_TypeDef *ncs_gpiox, uint16_t ncs_port, uint8_t addr, uint8_t *data)
 {
-    uint8_t txBuf[2] = {(addr | 0x80), 0x00};
-    uint8_t rxBuf[2];
+    uint8_t txBuf[8] = {((1 << 6)|(addr & 0x3F)), 0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+    uint8_t rxBuf[8];
 
     HAL_GPIO_WritePin(ncs_gpiox, ncs_port, GPIO_PIN_RESET);
     uint8_t status = (HAL_SPI_TransmitReceive(&hspi1, txBuf, rxBuf, 2, HAL_MAX_DELAY) == HAL_OK);
@@ -83,12 +83,12 @@ uint8_t SENSOR_Read8(GPIO_TypeDef *ncs_gpiox, uint16_t ncs_port, uint8_t addr, u
 
 uint8_t SENSOR_Write8(GPIO_TypeDef *ncs, uint8_t addr, uint8_t *data)
 {
-    uint8_t txBuf[2] = {(addr), 0x00};
-    uint8_t rxBuf[2];
+    uint8_t txBuf[8] = {(addr), 0x00,0x00,0x00,0x00,0x00,0x00,0x00};
+    uint8_t rxBuf[8];
 
-    HAL_GPIO_WritePin(ncs, NCS_SENSOR_GPIO_Port, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(ncs, ncs, GPIO_PIN_RESET);
     uint8_t status = (HAL_SPI_Transmit(&hspi1, txBuf, 2, HAL_MAX_DELAY) == HAL_OK);
-    HAL_GPIO_WritePin(ncs, NCS_SENSOR_GPIO_Port, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(ncs, ncs, GPIO_PIN_SET);
 
     *data = rxBuf[1];
     return status;
